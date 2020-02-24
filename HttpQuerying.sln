@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpQuerying.Infrastructure", "HttpQuerying.Infrastructure\HttpQuerying.Infrastructure.csproj", "{D89D219E-8876-43ED-9D6F-B472DB7D4718}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpQuerying.QueryingMiddleware", "HttpQuerying.QueryingMiddleware\HttpQuerying.QueryingMiddleware.csproj", "{DCA182A3-A99E-46C8-89FC-3473991B16F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D89D219E-8876-43ED-9D6F-B472DB7D4718}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D89D219E-8876-43ED-9D6F-B472DB7D4718}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D89D219E-8876-43ED-9D6F-B472DB7D4718}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D89D219E-8876-43ED-9D6F-B472DB7D4718}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCA182A3-A99E-46C8-89FC-3473991B16F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCA182A3-A99E-46C8-89FC-3473991B16F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCA182A3-A99E-46C8-89FC-3473991B16F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCA182A3-A99E-46C8-89FC-3473991B16F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
