@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <PackageReference Include="dependency-registry" Version="1.0.1" />
+      <PackageReference Include="middleware-method-executor" Version="1.0.1" />
     </ItemGroup>
 
 </Project>
