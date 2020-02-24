@@ -6,6 +6,7 @@ using System.Net.Mime;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DependencyRegistry;
+using HttpQuerying.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace HttpQuerying.QueryingMiddleware
 {
     public class Middleware
     {
-        private readonly IRegistry _registry;
+        private readonly IRegistry<IQuery> _registry;
         private readonly IMemoryCache _memoryCache;
         private readonly RequestDelegate _next;
         private readonly ILogger _logger;
@@ -28,7 +29,7 @@ namespace HttpQuerying.QueryingMiddleware
         };
 
 
-        public Middleware(RequestDelegate next, IRegistry registry, IMemoryCache memoryCache,
+        public Middleware(RequestDelegate next, IRegistry<IQuery> registry, IMemoryCache memoryCache,
             ILoggerFactory loggerFactory)
         {
             _next = next;
@@ -48,14 +49,18 @@ namespace HttpQuerying.QueryingMiddleware
                     httpContext.Response.StatusCode = (int) HttpStatusCode.OK;
                     httpContext.Response.ContentType = MediaTypeNames.Application.Json;
                     httpContext.Response.BodyWriter.Write(
-                        JsonSerializer.SerializeToUtf8Bytes(result, _jsonSerializerOptions));
+                        JsonSerializer.SerializeToUtf8Bytes(new HttpQueryResult
+                        {
+                            QueryId = queryId,
+                            Result = result
+                        }, typeof(HttpQueryResult), _jsonSerializerOptions));
                     httpContext.Response.BodyWriter.Complete();
                 }
 
-                var theMap = _registry[queryName];
+                var (dependee, depender) = _registry[queryName];
 
                 var response = await QueryHandlerExecutor.Execute(
-                    theMap.dependee, theMap.depender, queryId,
+                    dependee, depender, queryId,
                     httpContext.Request.BodyReader, httpContext.RequestServices,
                     httpContext.RequestAborted, _jsonSerializerOptions);
 

@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="dependency-registry" Version="1.0.0" />
+      <PackageReference Include="dependency-registry" Version="1.0.1" />
     </ItemGroup>
 
 </Project>
