@@ -31,4 +31,24 @@ namespace HttpQuerying.Middleware.Tests
                 }
             });
     }
+
+
+    internal class ConditionQueryResult
+    {
+        public bool Flag { get; set; }
+    }
+
+    internal class TestConditionQuery : IQuery
+    {
+        public bool Flag { get; set; }
+    }
+
+    internal class TestConditionQueryHandler : IQueryHandler<TestConditionQuery>
+    {
+        public Task<dynamic> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
+            Task.FromResult((object) new ConditionQueryResult
+            {
+                Flag = query.Flag
+            });
+    }
 }
