@@ -17,7 +17,6 @@ namespace HttpQuerying.QueryingMiddleware
     public class Middleware
     {
         private readonly IRegistry<IQuery> _registry;
-        private readonly IMemoryCache _memoryCache;
         private readonly RequestDelegate _next;
         private readonly ILogger _logger;
 
@@ -35,7 +34,6 @@ namespace HttpQuerying.QueryingMiddleware
         {
             _next = next;
             _registry = registry;
-            _memoryCache = memoryCache;
             _logger = loggerFactory.CreateLogger<Middleware>();
         }
 
