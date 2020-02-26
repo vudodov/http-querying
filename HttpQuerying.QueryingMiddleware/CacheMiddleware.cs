@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -18,6 +19,8 @@ namespace HttpQuerying.QueryingMiddleware
     {
         private readonly IRegistry<IQuery> _registry;
         private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _cacheOptions;
+        private readonly Func<string, IQuery, object> _getCacheKey;
         private readonly RequestDelegate _next;
         private readonly ILogger _logger;
 
@@ -31,12 +34,15 @@ namespace HttpQuerying.QueryingMiddleware
 
 
         public CacheMiddleware(RequestDelegate next, IRegistry<IQuery> registry, IMemoryCache memoryCache,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory, MemoryCacheEntryOptions cacheOptions,
+            Func<string, IQuery, object> getCacheKey)
         {
             _next = next;
             _registry = registry;
             _memoryCache = memoryCache;
-            _logger = loggerFactory.CreateLogger<Middleware>();
+            _cacheOptions = cacheOptions;
+            _getCacheKey = getCacheKey;
+            _logger = loggerFactory.CreateLogger<CacheMiddleware>();
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -45,56 +51,64 @@ namespace HttpQuerying.QueryingMiddleware
             {
                 Guid queryId = Guid.NewGuid();
 
-                void SetResponse(object result)
+                void SetResponse(object query, object queryResult)
                 {
+                    _memoryCache.GetOrCreate(
+                        _getCacheKey(queryName, (IQuery) query),
+                        entry =>
+                        {
+                            entry.SetOptions(_cacheOptions);
+                            return queryResult;
+                        });
+
                     httpContext.Response.StatusCode = (int) HttpStatusCode.OK;
                     httpContext.Response.ContentType = MediaTypeNames.Application.Json;
                     httpContext.Response.BodyWriter.Write(
                         JsonSerializer.SerializeToUtf8Bytes(new HttpQueryResult
                         {
                             QueryId = queryId,
-                            Result = result
+                            Result = queryResult
                         }, typeof(HttpQueryResult), _jsonSerializerOptions));
                     httpContext.Response.BodyWriter.Complete();
+
+
+                    var (dependee, depender) = _registry[queryName];
+
+                    var (message, result) = await Executor
+                        .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
+                            httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
+                            httpContext.RequestAborted, queryId);
+
+                    SetResponse(message, result);
                 }
 
-                var (dependee, depender) = _registry[queryName];
+                var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-                var response = await Executor
-                    .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
-                        httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
-                        httpContext.RequestAborted, queryId);
+                if (path[0] == "qry" || path[0] == "query")
+                    if (HttpMethods.IsGet(httpContext.Request.Method))
+                        if (httpContext.Request.ContentType.StartsWith(MediaTypeNames.Application.Json) &&
+                            !string.IsNullOrWhiteSpace(path[1]))
+                            try
+                            {
+                                await ExecuteQuery(path[1]);
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.LogError(exception, "Failed execute the query");
+                                throw;
+                            }
+                        else
+                        {
+                            var exception =
+                                new HttpRequestException(
+                                    "Command content-type must be JSON and path should contain query name");
+                            _logger.LogError(exception, "Failed execute query");
 
-                SetResponse(response);
+                            throw exception;
+                        }
+                    else throw new HttpRequestException("HTTP method should be GET");
+                else
+                    await _next.Invoke(httpContext);
             }
-
-            var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-            if (path[0] == "qry" || path[0] == "query")
-                if (HttpMethods.IsGet(httpContext.Request.Method))
-                    if (httpContext.Request.ContentType.StartsWith(MediaTypeNames.Application.Json) &&
-                        !string.IsNullOrWhiteSpace(path[1]))
-                        try
-                        {
-                            await ExecuteQuery(path[1]);
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.LogError(exception, "Failed execute the query");
-                            throw;
-                        }
-                    else
-                    {
-                        var exception =
-                            new HttpRequestException(
-                                "Command content-type must be JSON and path should contain query name");
-                        _logger.LogError(exception, "Failed execute query");
-
-                        throw exception;
-                    }
-                else throw new HttpRequestException("HTTP method should be GET");
-            else
-                await _next.Invoke(httpContext);
         }
     }
-}

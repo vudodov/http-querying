@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
+#pragma warning disable 1998
+
 namespace HttpQuerying.Middleware.Tests
 {
     public class When_executing_query
