@@ -11,6 +11,7 @@ using HttpQuerying.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using MiddlewareMethodExecutor;
 
 namespace HttpQuerying.QueryingMiddleware
@@ -21,6 +22,7 @@ namespace HttpQuerying.QueryingMiddleware
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheEntryOptions _cacheOptions;
         private readonly Func<string, IQuery, object> _getCacheKey;
+        private readonly Func<object, string> _etagCacheComputation;
         private readonly RequestDelegate _next;
         private readonly ILogger _logger;
 
@@ -35,13 +37,15 @@ namespace HttpQuerying.QueryingMiddleware
 
         public CacheMiddleware(RequestDelegate next, IRegistry<IQuery> registry, IMemoryCache memoryCache,
             ILoggerFactory loggerFactory, MemoryCacheEntryOptions cacheOptions,
-            Func<string, IQuery, object> getCacheKey)
+            Func<string, IQuery, object> getCacheKey,
+            Func<object, string> etagCacheComputation)
         {
             _next = next;
             _registry = registry;
             _memoryCache = memoryCache;
             _cacheOptions = cacheOptions;
             _getCacheKey = getCacheKey;
+            _etagCacheComputation = etagCacheComputation;
             _logger = loggerFactory.CreateLogger<CacheMiddleware>();
         }
 
@@ -53,14 +57,15 @@ namespace HttpQuerying.QueryingMiddleware
 
                 void SetResponse(object query, object queryResult)
                 {
-                    _memoryCache.GetOrCreate(
-                        _getCacheKey(queryName, (IQuery) query),
-                        entry =>
-                        {
-                            entry.SetOptions(_cacheOptions);
-                            return queryResult;
-                        });
-
+                    var checksum = _etagCacheComputation(queryResult);
+                    
+                    if (httpContext.Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var etag) && checksum == etag)
+                    {
+                        httpContext.Response.StatusCode = StatusCodes.Status304NotModified;
+                        return;
+                    }
+                    
+                    httpContext.Response.Headers[HeaderNames.ETag] = checksum;
                     httpContext.Response.StatusCode = (int) HttpStatusCode.OK;
                     httpContext.Response.ContentType = MediaTypeNames.Application.Json;
                     httpContext.Response.BodyWriter.Write(
@@ -70,45 +75,48 @@ namespace HttpQuerying.QueryingMiddleware
                             Result = queryResult
                         }, typeof(HttpQueryResult), _jsonSerializerOptions));
                     httpContext.Response.BodyWriter.Complete();
-
-
-                    var (dependee, depender) = _registry[queryName];
-
-                    var (message, result) = await Executor
-                        .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
-                            httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
-                            httpContext.RequestAborted, queryId);
-
-                    SetResponse(message, result);
                 }
 
-                var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                var (dependee, depender) = _registry[queryName];
+                
+                var (message, handleQuery) = await Executor
+                    .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
+                        httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
+                        httpContext.RequestAborted, queryId);
 
-                if (path[0] == "qry" || path[0] == "query")
-                    if (HttpMethods.IsGet(httpContext.Request.Method))
-                        if (httpContext.Request.ContentType.StartsWith(MediaTypeNames.Application.Json) &&
-                            !string.IsNullOrWhiteSpace(path[1]))
-                            try
-                            {
-                                await ExecuteQuery(path[1]);
-                            }
-                            catch (Exception exception)
-                            {
-                                _logger.LogError(exception, "Failed execute the query");
-                                throw;
-                            }
-                        else
-                        {
-                            var exception =
-                                new HttpRequestException(
-                                    "Command content-type must be JSON and path should contain query name");
-                            _logger.LogError(exception, "Failed execute query");
-
-                            throw exception;
-                        }
-                    else throw new HttpRequestException("HTTP method should be GET");
+                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult)) 
+                    SetResponse(message, cachedResult);
                 else
-                    await _next.Invoke(httpContext);
+                    SetResponse(message, await handleQuery());
             }
+
+            var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            if (path[0] == "qry" || path[0] == "query")
+                if (HttpMethods.IsGet(httpContext.Request.Method))
+                    if (httpContext.Request.ContentType.StartsWith(MediaTypeNames.Application.Json) &&
+                        !string.IsNullOrWhiteSpace(path[1]))
+                        try
+                        {
+                            await ExecuteQuery(path[1]);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.LogError(exception, "Failed execute the query");
+                            throw;
+                        }
+                    else
+                    {
+                        var exception =
+                            new HttpRequestException(
+                                "Command content-type must be JSON and path should contain query name");
+                        _logger.LogError(exception, "Failed execute query");
+
+                        throw exception;
+                    }
+                else throw new HttpRequestException("HTTP method should be GET");
+            else
+                await _next.Invoke(httpContext);
         }
     }
+}
