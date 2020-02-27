@@ -58,13 +58,14 @@ namespace HttpQuerying.QueryingMiddleware
                 void SetResponse(object query, object queryResult)
                 {
                     var checksum = _etagCacheComputation(queryResult);
-                    
-                    if (httpContext.Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var etag) && checksum == etag)
+
+                    if (httpContext.Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var etag) &&
+                        checksum == etag)
                     {
                         httpContext.Response.StatusCode = StatusCodes.Status304NotModified;
                         return;
                     }
-                    
+
                     httpContext.Response.Headers[HeaderNames.ETag] = checksum;
                     httpContext.Response.StatusCode = (int) HttpStatusCode.OK;
                     httpContext.Response.ContentType = MediaTypeNames.Application.Json;
@@ -78,16 +79,23 @@ namespace HttpQuerying.QueryingMiddleware
                 }
 
                 var (dependee, depender) = _registry[queryName];
-                
+
                 var (message, handleQuery) = await Executor
                     .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
                         httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
                         httpContext.RequestAborted, queryId);
 
-                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult)) 
+                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult))
                     SetResponse(message, cachedResult);
                 else
-                    SetResponse(message, await handleQuery());
+                {
+                    var queryResult = await handleQuery();
+                    var cacheEntry = _memoryCache.CreateEntry(_getCacheKey(queryName, (IQuery) message));
+                    cacheEntry.Value = queryResult;
+                    cacheEntry.SetOptions(_cacheOptions);
+
+                    SetResponse(message, queryResult);
+                }
             }
 
             var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);

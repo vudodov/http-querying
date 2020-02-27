@@ -63,7 +63,7 @@ namespace HttpQuerying.QueryingMiddleware
                         httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
                         httpContext.RequestAborted, queryId);
 
-                SetResponse(response);
+                SetResponse(await response.handleQuery());
             }
 
             var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);

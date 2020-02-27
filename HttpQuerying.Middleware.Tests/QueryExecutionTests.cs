@@ -45,7 +45,7 @@ namespace HttpQuerying.Middleware.Tests
                     Body = bodyRequestStream,
                     Path = "/query/test-query",
                     Method = HttpMethods.Get
-                },
+                }
             });
 
             httpContext.Request.ContentType = MediaTypeNames.Application.Json;

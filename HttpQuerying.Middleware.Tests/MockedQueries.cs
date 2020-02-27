@@ -5,6 +5,11 @@ using HttpQuerying.Infrastructure;
 
 namespace HttpQuerying.Middleware.Tests
 {
+    internal class StringQueryResult
+    {
+        public string StringProp { get; set; }
+    }
+    
     internal class QueryResult
     {
         public string StringProp { get; set; }
