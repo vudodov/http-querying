@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -55,7 +54,7 @@ namespace HttpQuerying.QueryingMiddleware
             {
                 Guid queryId = Guid.NewGuid();
 
-                void SetResponse(object query, object queryResult)
+                void SetResponse(object queryResult)
                 {
                     var checksum = _etagCacheComputation(queryResult);
 
@@ -86,7 +85,7 @@ namespace HttpQuerying.QueryingMiddleware
                         httpContext.RequestAborted, queryId);
 
                 if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult))
-                    SetResponse(message, cachedResult);
+                    SetResponse(cachedResult);
                 else
                 {
                     var queryResult = await handleQuery();
@@ -94,7 +93,7 @@ namespace HttpQuerying.QueryingMiddleware
                     cacheEntry.Value = queryResult;
                     cacheEntry.SetOptions(_cacheOptions);
 
-                    SetResponse(message, queryResult);
+                    SetResponse(queryResult);
                 }
             }
 

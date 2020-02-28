@@ -4,6 +4,14 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputType>Library</OutputType>
         <Nullable>enable</Nullable>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageId>http-querying-middleware</PackageId>
+        <Title>HTTP Querying Middleware</Title>
+        <Authors>Valerii Udodov &lt;vudodov@gmail.com&gt;</Authors>
+        <RepositoryUrl>https://github.com/vudodov/http-querying</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>cqrs, querying</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
