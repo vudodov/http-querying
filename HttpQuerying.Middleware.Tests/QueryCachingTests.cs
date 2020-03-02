@@ -15,16 +15,18 @@ using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
+#pragma warning disable 1998
+
 namespace HttpQuerying.Middleware.Tests
 {
     public class When_executing_query_with_caching
-    {
-                [Fact]
+    { 
+        [Fact]
         public async Task It_should_return_results()
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
             // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
@@ -34,7 +36,7 @@ namespace HttpQuerying.Middleware.Tests
             memoryCacheMock.Setup(memoryCache => memoryCache.CreateEntry(It.IsAny<object>()))
                 .Returns(Mock.Of<ICacheEntry>());
             
-            var middleware = new QueryingMiddleware.Middleware(
+            var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
@@ -81,7 +83,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-condition-query"])
-                .Returns((query: typeof(TestConditionQuery), queryHandler: typeof(TestConditionQueryHandler)));
+                .Returns((dependee: typeof(TestConditionQuery), depender: typeof(TestConditionQueryHandler)));
             
             // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
@@ -91,7 +93,7 @@ namespace HttpQuerying.Middleware.Tests
             memoryCacheMock.Setup(memoryCache => memoryCache.CreateEntry(It.IsAny<object>()))
                 .Returns(Mock.Of<ICacheEntry>());
             
-            var middleware = new QueryingMiddleware.Middleware(
+            var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
@@ -137,7 +139,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
 
             // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
@@ -145,7 +147,7 @@ namespace HttpQuerying.Middleware.Tests
             memoryCacheMock.Setup(memoryCache => memoryCache.TryGetValue(It.IsAny<object>(), out outValue))
                 .Returns(true);
 
-            var middleware = new QueryingMiddleware.CacheMiddleware(
+            var middleware = new HttpQuerying.Middleware.CacheMiddleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
@@ -170,7 +172,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
             // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
@@ -178,7 +180,7 @@ namespace HttpQuerying.Middleware.Tests
             memoryCacheMock.Setup(memoryCache => memoryCache.TryGetValue(It.IsAny<object>(), out outValue))
                 .Returns(true);
 
-            var middleware = new QueryingMiddleware.CacheMiddleware(
+            var middleware = new HttpQuerying.Middleware.CacheMiddleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
@@ -203,7 +205,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
             var memoryCacheMock = new Mock<IMemoryCache>();
             object outValue = new StringQueryResult {StringProp = "test value"};
@@ -211,7 +213,7 @@ namespace HttpQuerying.Middleware.Tests
             memoryCacheMock.Setup(memoryCache => memoryCache.TryGetValue("key", out outValue))
                 .Returns(true);
 
-            var middleware = new QueryingMiddleware.CacheMiddleware(
+            var middleware = new HttpQuerying.Middleware.CacheMiddleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
@@ -258,7 +260,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
             // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
@@ -270,7 +272,7 @@ namespace HttpQuerying.Middleware.Tests
                 .Callback(() => isCreateMemoCacheEntryCalled = true)
                 .Returns(Mock.Of<ICacheEntry>());
 
-            var middleware = new QueryingMiddleware.CacheMiddleware(
+            var middleware = new HttpQuerying.Middleware.CacheMiddleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,

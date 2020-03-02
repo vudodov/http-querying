@@ -17,7 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\HttpQuerying.Infrastructure\HttpQuerying.Infrastructure.csproj" />
-      <ProjectReference Include="..\HttpQuerying.QueryingMiddleware\HttpQuerying.QueryingMiddleware.csproj" />
+      <ProjectReference Include="..\HttpQuerying.Middleware\HttpQuerying.Middleware.csproj" />
     </ItemGroup>
 
 </Project>

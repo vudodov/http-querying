@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using MiddlewareMethodExecutor;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     public class CacheMiddleware
     {
