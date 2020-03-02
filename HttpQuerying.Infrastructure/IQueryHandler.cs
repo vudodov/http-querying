@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace HttpQuerying.Infrastructure
 {
-    public interface IQueryHandler<in TQuery> where TQuery : IQuery
+    public interface IQueryHandler<in TQuery, TQueryResult> where TQuery : IQuery
     {
-        Task<dynamic> HandleAsync(TQuery query, Guid queryId, CancellationToken token);
+        Task<TQueryResult> HandleAsync(TQuery query, Guid queryId, CancellationToken token);
     }
 }

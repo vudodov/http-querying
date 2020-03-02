@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="dependency-registry" Version="1.0.1" />
+      <PackageReference Include="dependency-registry" Version="1.0.2" />
       <PackageReference Include="middleware-method-executor" Version="1.0.4" />
     </ItemGroup>
 
