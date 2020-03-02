@@ -25,7 +25,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
-                .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
+                .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
             var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
@@ -74,7 +74,7 @@ namespace HttpQuerying.Middleware.Tests
         {
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-condition-query"])
-                .Returns((query: typeof(TestConditionQuery), queryHandler: typeof(TestConditionQueryHandler)));
+                .Returns((dependee: typeof(TestConditionQuery), depender: typeof(TestConditionQueryHandler)));
             
             var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
