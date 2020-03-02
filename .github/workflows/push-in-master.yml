@@ -1,0 +1,39 @@
+name: Publish
+
+on: 
+  push:
+    branches: [master]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1.4.0
+      with:
+        dotnet-version: '3.1.100'
+    - name: Build
+      run: dotnet build --configuration Release
+    - name: Test
+      run: dotnet test
+    - name: Setup Nuget.exe
+      uses: nuget/setup-nuget@v1
+    - name: Add GitHub nuget repo to sources
+      run: nuget sources add -name "GPR" -Source https://nuget.pkg.github.com/vudodov/index.json -Username vudodov -Password ${{ secrets.GITHUB_TOKEN }} 
+    - name: Pack
+      run: dotnet pack --output ./nupkg/
+    - name: Push Infrastructure to GitHub
+      run: nuget push **/nupkg/http-querying-infrastructure.*.nupkg -source "GPR" -SkipDuplicate
+    - name: Push Middleware to GitHub
+      run: nuget push **/nupkg/http-querying-middleware.*.nupkg -source "GPR" -SkipDuplicate
+    - name: Push Infrastructure to NuGet
+      env:
+        NUGET_API_KEY: ${{secrets.NUGET_API_KEY}}
+      run: dotnet nuget push **/nupkg/http-querying-infrastructure.*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
+    - name: Push Middleware to NuGet
+      env:
+        NUGET_API_KEY: ${{secrets.NUGET_API_KEY}}
+      run: dotnet nuget push **/nupkg/http-querying-middleware.*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
