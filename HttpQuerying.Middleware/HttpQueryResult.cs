@@ -1,6 +1,6 @@
 using System;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     internal sealed class HttpQueryResult
     {

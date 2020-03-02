@@ -27,7 +27,7 @@ namespace HttpQuerying.Middleware.Tests
             registryMock.SetupGet(p => p["test-query"])
                 .Returns((query: typeof(TestQuery), queryHandler: typeof(TestQueryHandler)));
             
-            var middleware = new QueryingMiddleware.Middleware(
+            var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
                 registryMock.Object,
                 Mock.Of<IMemoryCache>(),
@@ -76,7 +76,7 @@ namespace HttpQuerying.Middleware.Tests
             registryMock.SetupGet(p => p["test-condition-query"])
                 .Returns((query: typeof(TestConditionQuery), queryHandler: typeof(TestConditionQueryHandler)));
             
-            var middleware = new QueryingMiddleware.Middleware(
+            var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
                 registryMock.Object,
                 Mock.Of<IMemoryCache>(),

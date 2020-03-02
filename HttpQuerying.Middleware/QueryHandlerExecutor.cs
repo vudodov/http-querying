@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     internal static class QueryHandlerExecutor
     {

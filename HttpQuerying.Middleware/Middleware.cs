@@ -12,7 +12,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using MiddlewareMethodExecutor;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     public class Middleware
     {

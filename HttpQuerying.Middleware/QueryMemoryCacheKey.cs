@@ -1,6 +1,6 @@
 using HttpQuerying.Infrastructure;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     internal class QueryMemoryCacheKey
     {

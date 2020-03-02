@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HttpQuerying.QueryingMiddleware
+namespace HttpQuerying.Middleware
 {
     public static class Extensions
     {
