@@ -2,6 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageId>http-querying-infrastructure</PackageId>
+        <Title>HTTP Querying Infrastructure</Title>
+        <Authors>Valerii Udodov &lt;vudodov@gmail.com&gt;</Authors>
+        <RepositoryUrl>https://github.com/vudodov/http-querying</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>

@@ -5,6 +5,11 @@ using HttpQuerying.Infrastructure;
 
 namespace HttpQuerying.Middleware.Tests
 {
+    internal class StringQueryResult
+    {
+        public string StringProp { get; set; }
+    }
+    
     internal class QueryResult
     {
         public string StringProp { get; set; }
@@ -19,7 +24,7 @@ namespace HttpQuerying.Middleware.Tests
 
     internal class TestQueryHandler : IQueryHandler<TestQuery>
     {
-        public Task<dynamic> HandleAsync(TestQuery query, Guid queryId, CancellationToken token) =>
+        public Task<object> HandleAsync(TestQuery query, Guid queryId, CancellationToken token) =>
             Task.FromResult((object) new QueryResult
             {
                 StringProp = "TestString",
@@ -45,7 +50,7 @@ namespace HttpQuerying.Middleware.Tests
 
     internal class TestConditionQueryHandler : IQueryHandler<TestConditionQuery>
     {
-        public Task<dynamic> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
+        public Task<object> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
             Task.FromResult((object) new ConditionQueryResult
             {
                 Flag = query.Flag

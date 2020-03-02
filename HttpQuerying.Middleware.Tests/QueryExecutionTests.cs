@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
+#pragma warning disable 1998
+
 namespace HttpQuerying.Middleware.Tests
 {
     public class When_executing_query
@@ -43,7 +45,7 @@ namespace HttpQuerying.Middleware.Tests
                     Body = bodyRequestStream,
                     Path = "/query/test-query",
                     Method = HttpMethods.Get
-                },
+                }
             });
 
             httpContext.Request.ContentType = MediaTypeNames.Application.Json;
