@@ -20,14 +20,15 @@ namespace HttpQuerying.Middleware
         /// <param name="getCacheKey">Used to define how to calculate the cache key</param>
         /// <returns></returns>
         public static IApplicationBuilder UseHttpQuerying(this IApplicationBuilder builder,
-            MemoryCacheEntryOptions cacheOptions,
-            Func<string, IQuery, object> getCacheKey) => builder.UseMiddleware<CacheMiddleware>(cacheOptions, getCacheKey);
+            MemoryCacheEntryOptions cacheOptions, Func<string, IQuery, object> getCacheKey) =>
+            builder.UseMiddleware<CacheMiddleware>(cacheOptions, getCacheKey);
 
         public static void AddHttpQuerying(this IServiceCollection serviceCollection, params Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<IRegistry<IQuery>>(assemblies.Length == 0
-                ? new Registry<IQuery>()
+                ? new Registry<IQuery>(new[] {Assembly.GetCallingAssembly()})
                 : new Registry<IQuery>(assemblies));
+
             serviceCollection.AddMemoryCache();
         }
     }
