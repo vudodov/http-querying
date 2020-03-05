@@ -78,16 +78,16 @@ namespace HttpQuerying.Middleware
 
                 var (queryType, queryHandlerType) = _registry[queryName];
 
-                var (message, handleQuery) = await QueryHandlerResolver.Resolve(
+                var (query, handleQuery) = await QueryHandlerResolver.Resolve(
                     queryType, queryHandlerType, queryId, httpContext.Request.BodyReader, httpContext.RequestServices, 
                     _jsonSerializerOptions, httpContext.RequestAborted);
 
-                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult))
+                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) query), out object cachedResult))
                     SetResponse(cachedResult);
                 else
                 {
                     var queryResult = await handleQuery();
-                    var cacheEntry = _memoryCache.CreateEntry(_getCacheKey(queryName, (IQuery) message));
+                    var cacheEntry = _memoryCache.CreateEntry(_getCacheKey(queryName, (IQuery) query));
                     cacheEntry.Value = queryResult;
                     cacheEntry.SetOptions(_cacheOptions);
 
