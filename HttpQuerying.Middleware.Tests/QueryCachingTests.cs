@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -40,7 +41,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>());
+                NullLoggerFactory.Instance);
             
             var bodyRequestStream = new MemoryStream();
             var bodyResponseStream = new MemoryStream();
@@ -97,7 +98,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>());
+                NullLoggerFactory.Instance);
             
             var bodyRequestStream = new MemoryStream();
             var bodyResponseStream = new MemoryStream();
@@ -151,7 +152,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>(), new MemoryCacheEntryOptions(), 
+                NullLoggerFactory.Instance, new MemoryCacheEntryOptions(), 
                 (_, __) => "key", 
                 _ => "etag_checksum");
             
@@ -184,7 +185,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>(), new MemoryCacheEntryOptions(), 
+                NullLoggerFactory.Instance, new MemoryCacheEntryOptions(), 
                 (_, __) => "key", 
                 _ => "etag_checksum");
             
@@ -207,17 +208,22 @@ namespace HttpQuerying.Middleware.Tests
             registryMock.SetupGet(p => p["test-query"])
                 .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
             
+            // Memory cache setup
             var memoryCacheMock = new Mock<IMemoryCache>();
-            object outValue = new StringQueryResult {StringProp = "test value"};
+            object cachedValue = new StringQueryResult {StringProp = "test value"};
             bool isCreateMemoCacheEntryCalled = false;
-            memoryCacheMock.Setup(memoryCache => memoryCache.TryGetValue("key", out outValue))
+            memoryCacheMock.Setup(memoryCache => memoryCache.TryGetValue("key", out cachedValue))
                 .Returns(true);
+            memoryCacheMock.Setup(memoryCache => memoryCache.CreateEntry(It.IsAny<object>()))
+                .Callback(() => isCreateMemoCacheEntryCalled = true)
+                .Returns(Mock.Of<ICacheEntry>());
 
             var middleware = new HttpQuerying.Middleware.CacheMiddleware(
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>(), new MemoryCacheEntryOptions(), 
+                NullLoggerFactory.Instance, 
+                new MemoryCacheEntryOptions(), 
                 (_, __) => "key", 
                 _ => "etag_checksum");
             
@@ -276,7 +282,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 memoryCacheMock.Object,
-                Mock.Of<ILoggerFactory>(), new MemoryCacheEntryOptions(), 
+                NullLoggerFactory.Instance, new MemoryCacheEntryOptions(), 
                 (_, __) => "key", 
                 _ => "etag_checksum");
             

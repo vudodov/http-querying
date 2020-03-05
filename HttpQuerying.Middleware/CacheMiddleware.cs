@@ -78,7 +78,7 @@ namespace HttpQuerying.Middleware
 
                 var (queryType, queryHandlerType) = _registry[queryName];
 
-                var (message, handleQuery) = await QueryHandlerExecutor.Execute(
+                var (message, handleQuery) = await QueryHandlerResolver.Resolve(
                     queryType, queryHandlerType, queryId, httpContext.Request.BodyReader, httpContext.RequestServices, 
                     _jsonSerializerOptions, httpContext.RequestAborted);
 

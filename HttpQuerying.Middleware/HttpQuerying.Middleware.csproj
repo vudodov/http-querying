@@ -13,6 +13,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageTags>cqrs, querying</PackageTags>
         <PackageVersion>1.0.1</PackageVersion>
+        <IsPackable>true</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

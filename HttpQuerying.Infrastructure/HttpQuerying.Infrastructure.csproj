@@ -9,6 +9,7 @@
         <Authors>Valerii Udodov &lt;vudodov@gmail.com&gt;</Authors>
         <RepositoryUrl>https://github.com/vudodov/http-querying</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <PackageVersion>1.0.1</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -26,13 +27,13 @@ namespace HttpQuerying.Middleware.Tests
             var registryMock = new Mock<IRegistry<IQuery>>();
             registryMock.SetupGet(p => p["test-query"])
                 .Returns((dependee: typeof(TestQuery), depender: typeof(TestQueryHandler)));
-            
+
             var middleware = new HttpQuerying.Middleware.Middleware(
                 async context => { },
                 registryMock.Object,
-                Mock.Of<IMemoryCache>(),
-                Mock.Of<ILoggerFactory>());
-            
+                Mock.Of<IMemoryCache>(), 
+                NullLoggerFactory.Instance);
+
             var bodyRequestStream = new MemoryStream();
             var bodyResponseStream = new MemoryStream();
 
@@ -80,7 +81,7 @@ namespace HttpQuerying.Middleware.Tests
                 async context => { },
                 registryMock.Object,
                 Mock.Of<IMemoryCache>(),
-                Mock.Of<ILoggerFactory>());
+                NullLoggerFactory.Instance);
             
             var bodyRequestStream = new MemoryStream();
             var bodyResponseStream = new MemoryStream();

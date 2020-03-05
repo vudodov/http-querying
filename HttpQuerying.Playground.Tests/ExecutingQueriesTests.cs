@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -28,6 +29,10 @@ namespace HttpQuerying.Playground.Tests
             var responseMessage = await _client.SendAsync(query);
             
             responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+            var jsonDocument = JsonDocument.Parse(await responseMessage.Content.ReadAsStringAsync()).RootElement;
+            jsonDocument.GetProperty("result")[0].GetProperty("name").GetString().Should().Be("Nick");
+            jsonDocument.GetProperty("result")[1].GetProperty("name").GetString().Should().Be("Joseph");
         }
     }
 }

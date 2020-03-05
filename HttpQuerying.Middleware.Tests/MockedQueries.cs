@@ -5,24 +5,24 @@ using HttpQuerying.Infrastructure;
 
 namespace HttpQuerying.Middleware.Tests
 {
-    internal class StringQueryResult 
+    public class StringQueryResult 
     {
-        internal string StringProp { get; set; }
+        public string StringProp { get; set; }
     }
     
-    internal class QueryResult
+    public class QueryResult
     {
-        internal string StringProp { get; set; }
-        internal int IntProp { get; set; }
+        public string StringProp { get; set; }
+        public int IntProp { get; set; }
 
-        internal QueryResult ObjectProp { get; set; }
+        public QueryResult ObjectProp { get; set; }
     }
 
-    internal class TestQuery : IQuery
+    public class TestQuery : IQuery
     {
     }
 
-    internal class TestQueryHandler : IQueryHandler<TestQuery, QueryResult>
+    public class TestQueryHandler : IQueryHandler<TestQuery, QueryResult>
     {
         public Task<QueryResult> HandleAsync(TestQuery query, Guid queryId, CancellationToken token) =>
             Task.FromResult( new QueryResult
@@ -38,17 +38,17 @@ namespace HttpQuerying.Middleware.Tests
     }
 
 
-    internal class ConditionQueryResult
+    public class ConditionQueryResult
     {
-        internal bool Flag { get; set; }
+        public bool Flag { get; set; }
     }
 
-    internal class TestConditionQuery : IQuery
+    public class TestConditionQuery : IQuery
     {
-        internal bool Flag { get; set; }
+        public bool Flag { get; set; }
     }
 
-    internal class TestConditionQueryHandler : IQueryHandler<TestConditionQuery, ConditionQueryResult>
+    public class TestConditionQueryHandler : IQueryHandler<TestConditionQuery, ConditionQueryResult>
     {
         public Task<ConditionQueryResult> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
             Task.FromResult(new ConditionQueryResult

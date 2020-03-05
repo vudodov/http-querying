@@ -9,13 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HttpQuerying.Middleware
 {
-    internal static class QueryHandlerExecutor
+    internal static class QueryHandlerResolver
     {
-        public static async Task<(object? message, Func<Task<object>> handleQuery)> Execute(
-            Type queryType, Type queryHandlerType, Guid queryId, PipeReader queryData, IServiceProvider serviceProvider, 
+        public static async Task<(object? query, Func<Task<object>> handleQuery)> Resolve(
+            Type queryType, Type queryHandlerType, Guid queryId, PipeReader queryData, IServiceProvider serviceProvider,
             JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
         {
-            object messageHandlerInstance = ActivatorUtilities.CreateInstance(serviceProvider, queryHandlerType);
+            object queryHandlerInstance = ActivatorUtilities.CreateInstance(serviceProvider, queryHandlerType);
             MethodInfo? handleAsyncMethod = queryHandlerType.GetMethod("HandleAsync");
 
             if (handleAsyncMethod == null) throw new MissingMethodException(nameof(queryHandlerType), "HandleAsync");
@@ -24,7 +24,7 @@ namespace HttpQuerying.Middleware
 
             async Task<object> HandleQuery()
             {
-                Task task = (Task) handleAsyncMethod.Invoke(messageHandlerInstance, 
+                Task task = (Task) handleAsyncMethod.Invoke(queryHandlerInstance,
                     new[] {query, queryId, cancellationToken});
                 await task.ConfigureAwait(false);
                 return (object) ((dynamic) task).Result;
