@@ -99,7 +99,7 @@ The request should have
  - `content-type` header set to `application/json`;
  Don't forget to include query payload in the request body ;)
 
-![command-processing-image](https://drive.google.com/uc?export=view&id=1lLFqDLAYLxb1R2SVOY9dULO9uwtmxVvJ)
+![query-processing-image](/images/query-request-response-flow.png)
 
 #### Caching
 
