@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using MiddlewareMethodExecutor;
 
 namespace HttpQuerying.Middleware
 {
@@ -77,19 +76,18 @@ namespace HttpQuerying.Middleware
                     httpContext.Response.BodyWriter.Complete();
                 }
 
-                var (dependee, depender) = _registry[queryName];
+                var (queryType, queryHandlerType) = _registry[queryName];
 
-                var (message, handleQuery) = await Executor
-                    .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
-                        httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
-                        httpContext.RequestAborted, queryId);
+                var (query, handleQuery) = await QueryHandlerResolver.Resolve(
+                    queryType, queryHandlerType, queryId, httpContext.Request.BodyReader, httpContext.RequestServices, 
+                    _jsonSerializerOptions, httpContext.RequestAborted);
 
-                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) message), out object cachedResult))
+                if (_memoryCache.TryGetValue(_getCacheKey(queryName, (IQuery) query), out object cachedResult))
                     SetResponse(cachedResult);
                 else
                 {
                     var queryResult = await handleQuery();
-                    var cacheEntry = _memoryCache.CreateEntry(_getCacheKey(queryName, (IQuery) message));
+                    var cacheEntry = _memoryCache.CreateEntry(_getCacheKey(queryName, (IQuery) query));
                     cacheEntry.Value = queryResult;
                     cacheEntry.SetOptions(_cacheOptions);
 

@@ -9,29 +9,31 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HttpQuerying.Middleware
 {
-    internal static class QueryHandlerExecutor
+    internal static class QueryHandlerResolver
     {
-        internal static async Task<object> Execute(Type queryType, Type queryHandlerType, Guid queryId,
-            PipeReader pipeReader,
-            IServiceProvider serviceProvider, CancellationToken cancellationToken,
-            JsonSerializerOptions jsonSerializerOptions)
+        public static async Task<(object? query, Func<Task<object>> handleQuery)> Resolve(
+            Type queryType, Type queryHandlerType, Guid queryId, PipeReader queryData, IServiceProvider serviceProvider,
+            JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
         {
             object queryHandlerInstance = ActivatorUtilities.CreateInstance(serviceProvider, queryHandlerType);
             MethodInfo? handleAsyncMethod = queryHandlerType.GetMethod("HandleAsync");
-            
+
             if (handleAsyncMethod == null) throw new MissingMethodException(nameof(queryHandlerType), "HandleAsync");
 
-            var query = await ReadCommandAsync(pipeReader, queryType, jsonSerializerOptions, cancellationToken);
+            object? query = await ReadMessageAsync(queryData, queryType, jsonSerializerOptions, cancellationToken);
 
-            var queryResult = handleAsyncMethod.Invoke(queryHandlerInstance,
-                new[] {query, queryId, cancellationToken});
-            
-            if (queryResult == null) throw new NullReferenceException("Command result cannot be null.");
+            async Task<object> HandleQuery()
+            {
+                Task task = (Task) handleAsyncMethod.Invoke(queryHandlerInstance,
+                    new[] {query, queryId, cancellationToken});
+                await task.ConfigureAwait(false);
+                return (object) ((dynamic) task).Result;
+            }
 
-            return await (Task<object>) queryResult;
+            return (query, HandleQuery);
         }
 
-        private static async Task<object?> ReadCommandAsync(PipeReader pipeReader, Type queryType,
+        private static async Task<object?> ReadMessageAsync(PipeReader pipeReader, Type messageType,
             JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -45,18 +47,18 @@ namespace HttpQuerying.Middleware
                     return buffer.IsEmpty
                         ? null
                         : buffer.IsSingleSegment
-                            ? JsonSerializer.Deserialize(buffer.FirstSpan, queryType, jsonSerializerOptions)
-                            : DeserializeSequence(buffer, queryType);
+                            ? JsonSerializer.Deserialize(buffer.FirstSpan, messageType, jsonSerializerOptions)
+                            : DeserializeSequence(buffer, messageType);
                 }
             }
 
             throw new TaskCanceledException();
         }
 
-        private static object DeserializeSequence(ReadOnlySequence<byte> buffer, Type queryType)
+        private static object DeserializeSequence(ReadOnlySequence<byte> buffer, Type messageType)
         {
             var jsonReader = new Utf8JsonReader(buffer);
-            return JsonSerializer.Deserialize(ref jsonReader, queryType);
+            return JsonSerializer.Deserialize(ref jsonReader, messageType);
         }
     }
 }

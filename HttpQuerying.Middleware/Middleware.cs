@@ -10,7 +10,6 @@ using HttpQuerying.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using MiddlewareMethodExecutor;
 
 namespace HttpQuerying.Middleware
 {
@@ -56,14 +55,14 @@ namespace HttpQuerying.Middleware
                     httpContext.Response.BodyWriter.Complete();
                 }
 
-                var (dependee, depender) = _registry[queryName];
+                var (queryType, queryHandlerType) = _registry[queryName];
 
-                var response = await Executor
-                    .ExecuteAsyncMethod(dependee, depender, "HandleAsync",
-                        httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
-                        httpContext.RequestAborted, queryId);
+                var handler = await QueryHandlerResolver.Resolve(queryType, queryHandlerType, queryId,
+                    httpContext.Request.BodyReader, httpContext.RequestServices, _jsonSerializerOptions,
+                    httpContext.RequestAborted);
 
-                SetResponse(await response.handleQuery());
+                var queryResult = await handler.handleQuery();
+                SetResponse(queryResult);
             }
 
             var path = httpContext.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);

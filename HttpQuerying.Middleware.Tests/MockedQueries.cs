@@ -5,12 +5,12 @@ using HttpQuerying.Infrastructure;
 
 namespace HttpQuerying.Middleware.Tests
 {
-    internal class StringQueryResult
+    public class StringQueryResult 
     {
         public string StringProp { get; set; }
     }
     
-    internal class QueryResult
+    public class QueryResult
     {
         public string StringProp { get; set; }
         public int IntProp { get; set; }
@@ -18,14 +18,14 @@ namespace HttpQuerying.Middleware.Tests
         public QueryResult ObjectProp { get; set; }
     }
 
-    internal class TestQuery : IQuery
+    public class TestQuery : IQuery
     {
     }
 
-    internal class TestQueryHandler : IQueryHandler<TestQuery>
+    public class TestQueryHandler : IQueryHandler<TestQuery, QueryResult>
     {
-        public Task<object> HandleAsync(TestQuery query, Guid queryId, CancellationToken token) =>
-            Task.FromResult((object) new QueryResult
+        public Task<QueryResult> HandleAsync(TestQuery query, Guid queryId, CancellationToken token) =>
+            Task.FromResult( new QueryResult
             {
                 StringProp = "TestString",
                 IntProp = 12,
@@ -38,20 +38,20 @@ namespace HttpQuerying.Middleware.Tests
     }
 
 
-    internal class ConditionQueryResult
+    public class ConditionQueryResult
     {
         public bool Flag { get; set; }
     }
 
-    internal class TestConditionQuery : IQuery
+    public class TestConditionQuery : IQuery
     {
         public bool Flag { get; set; }
     }
 
-    internal class TestConditionQueryHandler : IQueryHandler<TestConditionQuery>
+    public class TestConditionQueryHandler : IQueryHandler<TestConditionQuery, ConditionQueryResult>
     {
-        public Task<object> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
-            Task.FromResult((object) new ConditionQueryResult
+        public Task<ConditionQueryResult> HandleAsync(TestConditionQuery query, Guid queryId, CancellationToken token) =>
+            Task.FromResult(new ConditionQueryResult
             {
                 Flag = query.Flag
             });
